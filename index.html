@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Math Game</title>
+    <link href="https://fonts.googleapis.com/css?family=Luckiest+Guy" rel="stylesheet">
+</head>
+
+<style>
+    * {
+        box-sizing: border-box; //transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    }
+
+    body {
+        margin: 0;
+        background-image: url(images/background/border.png);
+        height: 100%;
+        width: 100%;
+    }
+
+    main {
+        background: url(images/background/main.png) scroll no-repeat center/cover;
+        background-size: 100%;
+        height: 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+
+    /* UI Elements*/
+
+    .divMenu {
+        transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+        text-align: center;
+        padding: 10px;
+        position: relative;
+        background-image: url(images/background/menu.png);
+        border-color: #2ea303;
+        border-image: url(images/background/border.png);
+        width: 50%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0 auto;
+        z-index: 1000;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    }
+
+    #menuToggle {
+        display: none;
+    }
+
+    #menuToggle:checked+.divMenu {
+        top: -239px;
+    }
+
+    .divProblem {
+        position: relative;
+        margin: 0 120px;
+        float: left;
+        right: 0px;
+        height: 120px;
+        width: 280px;
+        text-align: center;
+    }
+
+    #spanProblem {
+        font-family: 'Luckiest Guy', cursive;
+        font-size: 60px;
+        color: crimson;
+        text-shadow: 2px 2px rgba(0, 0, 0, 0.98);
+        margin: 0 auto;
+        text-align: center;
+        display: inline-block;
+        float: center;
+
+    }
+
+    #spanAnswer {
+        font-family: 'Luckiest Guy', cursive;
+        font-size: 65px;
+        color: royalblue;
+        text-shadow: 2px 2px rgba(0, 0, 0, 0.98);
+        position: relative;
+        margin: 0 auto;
+        text-align: center;
+        display: inline-block;
+    }
+
+    #inptAnswer {
+        opacity: 0;
+    }
+
+    .divFooter {
+        position: absolute;
+        bottom: 0;
+        height: 123px;
+        width: 100%;
+        background-image: url(images/background/StatusBar.png);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+        background-size: 100% 100%;
+    }
+
+    html {
+        height: 100%;
+        width: 100%;
+    }
+
+    .win {
+        position: absolute;
+        height: 80%;
+        width: 80%;
+        z-index: 9999;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .divMenuHeader {
+        font-family: 'Luckiest Guy', cursive;
+        font-size: 3.5em;
+        margin: .2em;
+        color: #F69D99;
+        text-shadow: 2px 2px rgba(169, 44, 60, 0.98);
+    }
+
+    .divStage {
+        box-sizing: border-box;
+        position: relative;
+        width: 100%;
+        margin-top: 340px;
+        padding-left: 500px;
+        padding-right: 500px;
+    }
+
+    #mainCharacter {
+        z-index: 1000;
+    }
+
+    #enemyCharacter {
+        height: 200px;
+        -moz-transform: scaleX(-1);
+        -o-transform: scaleX(-1);
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+        filter: FlipH;
+        -ms-filter: "FlipH";
+    }
+
+</style>
+
+<body>
+    <img id="statusMessage" src="images/Message/Win.png" class="hidden">
+    <header>
+    </header>
+    <main>
+        <input type="checkbox" id="menuToggle">
+        <div class="divMenu">
+            <div class="divMenuHeader">
+                <img src="images/background/Kirby_Logo.png" style="height: 100px;"> Math Attack
+            </div>
+            <div>
+                <span>Max Multiplier:</span>
+                <input type=number id="inptMaxMultiplier" value="12">
+            </div>
+            <div>
+                <span>Multiples:</span>
+                <input type=number id="inptMultiples" value="2">
+            </div>
+            <div>
+                <span>Difficulty:</span>
+                <select id="slctDifficulty">
+                <option value="5">Very Hard</option>
+                <option value="10">Hard</option>
+                <option selected value="20">Medium</option>
+                <option value="30">Easy</option>
+                <option value="40">Super Easy</option>
+            </select>
+            </div>
+            <div>
+                <input type="button" value="Begin" onclick="Begin()">
+            </div>
+        </div>
+        <img id="statusMessage" src="images/Message/Win.png" class="hidden">
+        <div class="divStage">
+            <img id="mainCharacter"><img id="enemyCharacter">
+        </div>
+        <input type=number id=inptAnswer>
+        <div class="divFooter">
+
+            <input type=number id=mainCharacterHealth>
+            <input type=number id=enemyCharacterHealth>
+            <div class="divProblem">
+                <span id="spanProblem"></span>
+                <span id="spanAnswer"></span>
+            </div>
+        </div>
+    </main>
+    <footer>
+    </footer>
+</body>
+<script type=text/javascript>
+    var NewGame;
+
+    function loadGame() {
+        if (typeof(Storage) !== "undefined") {
+            // Code for localStorage/sessionStorage.
+
+            document.getElementById('inptMaxMultiplier').value = (localStorage.max) ? localStorage.max : 12;
+            document.getElementById('inptMultiples').value = (localStorage.multiplier) ? localStorage.multiplier : 6;
+            document.getElementById("slctDifficulty").selectedIndex = (localStorage.difficulty) ? localStorage.difficulty : 2;
+        } else {
+            // Sorry! No Web Storage support..
+        }
+    }
+    loadGame()
+
+    function Game() {
+
+        this.currentMultiple
+        this.enemyPosition = 500
+        this.currentMultiplier = document.getElementById('inptMultiples').value;
+        this.maxMultiplier = document.getElementById('inptMaxMultiplier').value;
+        this.currentProblemArray = []
+        this.currentProblemString = ""
+        this.multipleIndex
+        this.multipleArray = []
+        this.gameover = true;
+        this.gameTimerInterval
+        this.init = function() {
+            document.getElementById("menuToggle").checked = true;
+            this.HighScore.checkForHSBoard();
+            this.clearGameIntervals();
+            this.gameTimer = 0
+            this.gameTimerInterval = setInterval(() => {
+                this.gameTimer += 1
+            }, 10)
+            this.gameover = false;
+            this.currentMultiple
+            this.enemyPosition = 500
+            this.currentMultiplier = document.getElementById('inptMultiples').value
+            this.currentProblemArray = []
+            this.currentProblemString = ""
+            this.multipleIndex
+            this.multipleArray = []
+            this.saveSettingsSelection();
+            document.getElementById("mainCharacterHealth").value = 0
+            this.animate.normal()
+            for (i = 1; i <= this.maxMultiplier; i++) {
+                this.multipleArray.push(i)
+            }
+            this.animate.difficulty = document.getElementById("slctDifficulty").value;
+            this.characterStatus.enemyHealthMax = this.multipleArray.length
+            this.characterStatus.setMainCharacterHealth(100)
+            this.characterStatus.setEnemyHealth(this.multipleArray.length)
+            this.changeMultiple()
+            this.animate.enemyReset()
+        }
+        this.saveSettingsSelection = function() {
+            localStorage.setItem("max", document.getElementById('inptMaxMultiplier').value);
+            localStorage.setItem("multiplier", document.getElementById('inptMultiples').value);
+            localStorage.setItem("difficulty", document.getElementById("slctDifficulty").selectedIndex)
+        }
+        this.HighScore = {
+            check: function(newscore, multipleTree) {
+                var newHS = false;
+                var HSBoard = JSON.parse(localStorage.HighScores);
+                var lastUser = (localStorage.lastUser) ? localStorage.lastUser : "";
+                if (!HSBoard[multipleTree]) {
+                    HSBoard[multipleTree] = {}
+                    for (i = 1; i < 4; i++) {
+                        HSBoard[multipleTree][i] = {}
+                    }
+                }
+                for (i = 1; i < 4; i++) {
+                    if (HSBoard[multipleTree][i].time > newscore || !HSBoard[multipleTree][i].time) {
+                        switch(i){
+                            case 1:
+                                
+                                HSBoard[multipleTree][3] = HSBoard[multipleTree][2]
+                                HSBoard[multipleTree][2] = HSBoard[multipleTree][i]
+                                break;
+                            case 2:
+                                console.log("here 2")
+                                HSBoard[multipleTree][3] = HSBoard[multipleTree][i]
+                                break;
+                        }
+                        HSBoard[multipleTree][i].time = newscore;
+                        HSBoard[multipleTree][i].user = prompt('NEW High Score \nPlease Enter Your Name', lastUser);
+                        console.log(HSBoard)
+                        localStorage.setItem("lastUser", HSBoard[multipleTree][i].user)
+                        newHS = true;
+                        localStorage.setItem("HighScores", JSON.stringify(HSBoard));
+                        break;
+                    }
+                }
+                return newHS;
+            },
+            checkForHSBoard: function() {
+                if (!localStorage.HighScores) localStorage.setItem("HighScores", JSON.stringify({}))
+            }
+        }
+        this.changeMultiple = function() {
+            this.multipleIndex = Math.floor(Math.random() * this.multipleArray.length)
+            this.currentMultiple = this.multipleArray[this.multipleIndex]
+            this.currentProblemArray = [this.currentMultiple, document.getElementById('inptMultiples').value]
+            this.generateCurrentProblemString()
+            document.getElementById('spanProblem').innerHTML = this.currentProblemString
+            document.getElementById('inptAnswer').focus()
+        }
+        this.generateCurrentProblemString = function() {
+            this.currentProblemString = ""
+            var currentIndex = Math.floor(Math.random() * 2)
+            this.currentProblemString += this.currentProblemArray[currentIndex] + " X ";
+            this.currentProblemArray.splice(currentIndex, 1)
+            this.currentProblemString += this.currentProblemArray[0]
+
+        }
+
+        this.clearGameIntervals = function() {
+            console.log(this)
+            clearInterval(this.gameTimerInterval);
+        }
+        this.checkAnswer = function(submittedAnswer) {
+            if (this.gameover === true) {} else if (submittedAnswer == (this.currentMultiple * this.currentMultiplier)) {
+                this.animate.attack()
+                this.multipleArray.splice(this.multipleIndex, 1)
+                if (this.multipleArray.length === 0) {
+                    alert("YOU WIN!!!")
+                    setTimeout(this.animate.win, 900)
+                    return false;
+                }
+                this.changeMultiple()
+            } else {
+                this.animate.enemyIncreaseDifficulty()
+                this.changeMultiple()
+            }
+        }
+        this.restart = function(callbackFunction) {
+            console.log("Restarted")
+            this.animate.enemyClearTimers()
+            this.init()
+        }
+        this.animate = {
+            difficulty: 40,
+            normal: function() {
+                document.getElementById("statusMessage").className = "hidden"
+                document.getElementById('mainCharacter').style = "height:152px;margin-bottom:48px"
+                document.getElementById('mainCharacter').src = "images/Kirby/idle.gif"
+            },
+            attack: function() {
+                if (this.enemyAttackTimer) {
+                    clearInterval(this.enemyAttackTimer)
+                    this.enemyAttackTimer = false
+                } else if (this.NewGame && this.NewGame.animate.enemyAttackTimer) {
+                    clearInterval(this.NewGame.animate.enemyAttackTimer)
+                    this.NewGame.animate.enemyAttackTimer = false
+                }
+                clearInterval(this.enemyAttackTimer)
+                document.getElementById('mainCharacter').style = "height:200px"
+                document.getElementById('mainCharacter').src = "images/Kirby/attack.gif"
+                setTimeout(this.enemyHurt, 580)
+                setTimeout(this.normal, 900)
+            },
+            win: function() {
+                if (this.NewGame.animate.enemyMoveTimer) clearInterval(this.NewGame.animate.enemyMoveTimer)
+                this.NewGame.animate.enemyClearTimers();
+                this.NewGame.clearGameIntervals();
+                this.NewGame.animate.enemyMoveTimer = false
+                this.NewGame.gameover = true;
+                document.getElementById('mainCharacter').style = "height:152px;margin-bottom:48px"
+                document.getElementById('mainCharacter').src = "images/Kirby/win.gif"
+                document.getElementById('enemyCharacter').src = "images/enemy/youwin.gif"
+                document.getElementById('spanProblem').innerHTML = (this.NewGame.HighScore.check((this.NewGame.gameTimer / 100), this.NewGame.currentMultiplier + "X" + this.NewGame.maxMultiplier)) ? "NEW RECORD: " : ""
+                document.getElementById('spanAnswer').innerHTML = (this.NewGame.gameTimer / 100) + " Seconds"
+                document.getElementById("statusMessage").className = "win"
+            },
+            lose: function() {
+                if (this.NewGame.animate.enemyMoveTimer) clearInterval(this.NewGame.animate.enemyMoveTimer)
+                this.NewGame.animate.enemyClearTimers();
+                this.NewGame.clearGameIntervals();
+                this.NewGame.animate.enemyMoveTimer = false
+                this.NewGame.gameover = true;
+                document.getElementById('mainCharacter').style = "height:152px;margin-bottom:48px"
+                document.getElementById('spanProblem').innerHTML = "!!!!YOU LOSE!!!!"
+                document.getElementById('enemyCharacter').src = "images/enemy/taunt.gif"
+                document.getElementById('mainCharacter').src = "images/kirby/dead.png"
+                //document.getElementById("statusMessage").className = "win"
+            },
+            enemyPosition: 500,
+            enemyMoveTimer: {},
+            enemyAttackTimer: {},
+            enemyMoving: false,
+            enemyClearTimers: function() {
+                this.enemyMoving = false
+                clearInterval(this.enemyAttackTimer);
+                clearInterval(this.enemyMoveTimer);
+            },
+            enemyIncreaseDifficulty: function() {
+                this.enemyClearTimers()
+                this.difficulty -= 10
+                document.getElementById("enemyCharacter").src = "images/enemy/taunt.gif"
+                setTimeout(() => {
+                    this.enemyMove()
+                }, 500)
+
+            },
+            enemyHurt: function() {
+                this.NewGame.characterStatus.setEnemyHealth(this.NewGame.multipleArray.length)
+                if (this.NewGame.animate.enemyMoveTimer) clearInterval(this.NewGame.animate.enemyMoveTimer)
+                this.NewGame.animate.enemyMoveTimer = false;
+                this.NewGame.animate.enemyMoving = false;
+                document.getElementById('enemyCharacter').src = "images/enemy/tumble.gif"
+                if (!this.NewGame.animate.enemyMoveTimer) this.NewGame.animate.enemyMoveTimer = setInterval(function() {
+                    this.NewGame.animate.enemyPosition -= 2
+                    document.getElementById('enemyCharacter').style = "position:absolute;bottom:50px;right:" + this.NewGame.animate.enemyPosition + "px"
+
+                    if (this.NewGame.animate.enemyPosition <= 500) {
+                        clearInterval(this.NewGame.animate.enemyMoveTimer)
+                        this.NewGame.animate.enemyReset()
+                    }
+                }, 5)
+            },
+            enemyMove: function() {
+                if (this.enemyMoving == false) {
+                    this.enemyMoving = true;
+                    document.getElementById("enemyCharacter").src = "images/enemy/walk.gif"
+                    this.enemyMoveInterval.position = this.enemyPosition
+                    this.enemyMoveTimer = setInterval(this.enemyMoveInterval, this.difficulty)
+                    document.getElementById('enemyCharacter').style = "position:absolute;bottom:50px;right:" + this.enemyPosition + "px"
+                }
+            },
+            enemyMoveInterval: function() {
+                this.NewGame.animate.enemyPosition += 2
+                document.getElementById('enemyCharacter').style = "position:absolute;bottom:50px;right:" + this.NewGame.animate.enemyPosition + "px"
+                if (this.NewGame.animate.enemyPosition >= 1150) {
+                    clearInterval(this.NewGame.animate.enemyMoveTimer)
+                    document.getElementById('enemyCharacter').src = "images/enemy/attack.gif"
+                    this.NewGame.animate.enemyAttackTimer = setInterval(function() {
+                        this.NewGame.characterStatus.setMainCharacterHealth(-10)
+                        if (document.getElementById("mainCharacterHealth").value <= 0) {
+                            clearInterval(this.NewGame.animate.enemyAttackTimer)
+                            this.NewGame.animate.enemyAttackTimer = false;
+                            setTimeout(this.NewGame.animate.lose, 900)
+                            return false;
+                        }
+
+                    }, 500)
+                }
+            },
+            enemyReset: function() {
+                document.getElementById('enemyCharacter').src = "images/enemy/walk.gif"
+                clearInterval(this.enemyMoveTimer)
+                this.enemyPosition = 500
+                this.enemyMove()
+            }
+
+        }
+        this.characterStatus = {
+            setMainCharacterHealth: function(main) {
+                document.getElementById("mainCharacterHealth").value = Number(document.getElementById("mainCharacterHealth").value) + main
+            },
+            setEnemyHealth: function(enemy) {
+                document.getElementById("enemyCharacterHealth").value = this.enemyHealth(enemy)
+            },
+            enemyHealthMax: 0,
+            enemyHealth: function(enemy) {
+                return enemy / this.enemyHealthMax
+            }
+        }
+
+        this.init();
+    }
+
+    function Begin(sequentialRun) {
+        if (NewGame) {
+            NewGame.restart()
+
+        } else {
+            NewGame = new Game();
+        }
+    }
+    document.getElementById('inptAnswer').addEventListener("keyup", function(e) {
+        switch (e.key) {
+            case "Enter":
+                NewGame.checkAnswer(e.target.value)
+                e.target.value = null
+                break;
+            case "Escape":
+                document.getElementById("menuToggle").checked = (document.getElementById("menuToggle").checked) ? false : true;
+                break;
+        }
+        console.log(e.key)
+        document.getElementById("spanAnswer").innerHTML = " = " + this.value
+    });
+
+</script>
+
+</html>
